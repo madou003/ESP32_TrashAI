@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartBin — Sign in</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/js.js" defer></script>
+
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">SmartBin</div>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="data_analytics.html">Analytics</a></li>
+      <li><a href="ai_detection.html">AI Detection</a></li>
+      <li><a href="settings.html">Settings</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="login-btn" data-action="back">Back</button>
+    </div>
+  </nav>
+
+  <main class="auth-wrap">
+    <section class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="auth-sub">Sign in to manage your bins, alerts, and analytics.</p>
+
+      <form id="loginForm" novalidate>
+        <div class="input-row">
+          <label for="email">Work email</label>
+          <input id="email" name="email" type="email" placeholder="you@exemple.com" autocomplete="username" required aria-invalid="false" />
+          <small id="emailError" class="error" aria-live="polite">Please use your @exemple.com email.</small>
+        </div>
+
+        <div class="input-row">
+          <label for="password">Password</label>
+          <div class="input-affix">
+            <input id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required aria-invalid="false" />
+            <button type="button" id="togglePassword" class="affix" aria-pressed="false" aria-label="Toggle password visibility">Show</button>
+          </div>
+          <div class="password-strength" aria-hidden="true">
+            <span id="led1" class="led"></span>
+            <span id="led2" class="led"></span>
+            <span id="led3" class="led"></span>
+          </div>
+          <small id="passwordError" class="error" aria-live="polite">Use at least 8 characters.</small>
+          <small id="capsHint" class="error" style="display:none" aria-live="polite">Caps Lock is ON.</small>
+        </div>
+
+        <div class="form-footer">
+          <label><input type="checkbox" id="rememberMe" /> Remember me</label>
+          <a href="#" class="btn gray">Forgot password?</a>
+        </div>
+
+        <button id="loginSubmit" class="cta-btn" type="submit" disabled>Sign in</button>
+
+        <div class="divider">or</div>
+
+        <div class="oauth">
+          <button type="button" class="btn black"><span>🔒</span> Sign in with SSO</button>
+          <button type="button" class="btn gray"><span>🔗</span> Magic link</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer>© <span id="year"></span> SmartBin — All rights reserved.</footer>
+
+  <script src="app.js" defer></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

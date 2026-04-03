@@ -1,0 +1,2 @@
+recepteur: 78:1C:3C:2D:38:EC COM8
+emmeteur: 6C:C8:40:05:6D:88 COM3

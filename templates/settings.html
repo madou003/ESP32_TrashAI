@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Control / Settings</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Chart.js for the real-time chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="logo">SmartBin</div>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="data_analytics.html">Data Analytics</a></li>
+    <li><a href="ai_detection.html">AI Detection</a></li>
+    <li><a href="settings.html">Settings</a></li>
+  </ul>
+  <a href="login.html"><button class="login-btn">Login / SignUp</button></a>
+</nav>
+
+<main>
+  <!-- Material Threshold Settings -->
+  <section class="settings-section">
+    <h2>⚙️ Material Threshold Settings</h2>
+    <p>Adjust the maximum percentage for each material before it stops being filtered:</p>
+    <div class="material-controls">
+      <div class="material-control">
+        <label for="organic">Organic (%)</label>
+        <input type="range" id="organic" min="0" max="100" value="20">
+        <span id="organicVal">20%</span>
+      </div>
+      <div class="material-control">
+        <label for="plastic">Plastic (%)</label>
+        <input type="range" id="plastic" min="0" max="100" value="50">
+        <span id="plasticVal">50%</span>
+      </div>
+      <div class="material-control">
+        <label for="metal">Metal (%)</label>
+        <input type="range" id="metal" min="0" max="100" value="30">
+        <span id="metalVal">30%</span>
+      </div>
+      <div class="material-control">
+        <label for="paper">Paper (%)</label>
+        <input type="range" id="paper" min="0" max="100" value="40">
+        <span id="paperVal">40%</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bin Status -->
+  <section class="bins-section">
+    <h2>🗑️ Current Bin Fill Status</h2>
+    <div class="bin-status">
+      <div class="bin">
+        <span>Organic</span>
+        <div class="fill-bar">
+          <div class="fill" id="organicFill" style="width: 0%; background: #28a745;"></div>
+        </div>
+      </div>
+      <div class="bin">
+        <span>Plastic</span>
+        <div class="fill-bar">
+          <div class="fill" id="plasticFill" style="width: 0%; background: #ffc107;"></div>
+        </div>
+      </div>
+      <div class="bin">
+        <span>Metal</span>
+        <div class="fill-bar">
+          <div class="fill" id="metalFill" style="width: 0%; background: #17a2b8;"></div>
+        </div>
+      </div>
+      <div class="bin">
+        <span>Paper</span>
+        <div class="fill-bar">
+          <div class="fill" id="paperFill" style="width: 0%; background: #6f42c1;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Real-Time Chart -->
+  <section class="chart-section">
+    <h2>📊 Real-Time Chart</h2>
+    <div class="chart-placeholder">
+      <canvas id="binsChart"></canvas>
+    </div>
+  </section>
+</main>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <div class="contact">
+      <h3>Contact Us</h3>
+      <p>Email: info@smarttrash.com</p>
+      <p>Phone: +216 12 345 678</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  let binsChart = null;
+
+  async function loadSettingsFromBackend() {
+    try {
+      const res = await fetch("/api/settings");
+      const cfg = await res.json();
+      const ids = ["organic", "plastic", "metal", "paper"];
+      ids.forEach(id => {
+        const slider = document.getElementById(id);
+        const span = document.getElementById(id + "Val");
+        if (cfg[id] !== undefined) {
+          slider.value = cfg[id];
+        }
+        span.textContent = slider.value + "%";
+      });
+    } catch (err) {
+      console.error("Error loading settings:", err);
+    }
+  }
+
+  async function saveSettingsToBackend() {
+    const payload = {
+      organic: document.getElementById("organic").value,
+      plastic: document.getElementById("plastic").value,
+      metal: document.getElementById("metal").value,
+      paper: document.getElementById("paper").value,
+    };
+    try {
+      await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error("Error saving settings:", err);
+    }
+  }
+
+  function setupSliders() {
+    const ids = ["organic", "plastic", "metal", "paper"];
+    ids.forEach(id => {
+      const slider = document.getElementById(id);
+      const span = document.getElementById(id + "Val");
+      slider.addEventListener("input", () => {
+        span.textContent = slider.value + "%";
+        saveSettingsToBackend();
+      });
+    });
+  }
+
+  async function updateBins() {
+    try {
+      const res = await fetch("/api/bin_status");
+      const data = await res.json();
+      document.getElementById("organicFill").style.width = (data.organic || 0) + "%";
+      document.getElementById("plasticFill").style.width = (data.plastic || 0) + "%";
+      document.getElementById("metalFill").style.width   = (data.metal   || 0) + "%";
+      document.getElementById("paperFill").style.width   = (data.paper   || 0) + "%";
+    } catch (err) {
+      console.error("Error updating bin status:", err);
+    }
+  }
+
+  async function updateChart() {
+    try {
+      const res = await fetch("/api/detection_stats");
+      const data = await res.json();
+      const per = data.per_label || {};
+
+      const labels = ["ORGANIC", "PLASTIC", "METAL", "PAPER"];
+      const counts = labels.map(l => per[l] || 0);
+
+      const ctx = document.getElementById("binsChart").getContext("2d");
+      if (binsChart) binsChart.destroy();
+      binsChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Items sorted",
+            data: counts,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          }
+        }
+      });
+    } catch (err) {
+      console.error("Error updating chart:", err);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setupSliders();
+    loadSettingsFromBackend();
+    updateBins();
+    updateChart();
+    // refresh every few seconds
+    setInterval(updateBins, 5000);
+    setInterval(updateChart, 10000);
+  });
+</script>
+
+</body>
+</html>

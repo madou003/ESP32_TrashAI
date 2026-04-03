@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Trash Can Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="logo">SmartBin</div>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="data_analytics.html">Data Analytics</a></li>
+      <li><a href="ai_detection.html">AI Detection</a></li>
+      <li><a href="settings.html">Settings</a></li>
+    </ul>
+    <a href="login.html"><button class="login-btn">Login / SignUp</button></a>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Smart Waste. Smarter Future.</h1>
+      <p>AI-powered sorting, real-time tracking, and intelligent waste management.</p>
+      <button class="cta-btn">Get Started</button>
+    </div>
+    <div class="hero-image">
+      <img src="{{ url_for('static', filename='images/bin.png') }}" alt="Smart Trash Can" />
+    </div>
+  </section>
+
+  <!-- Notifications Section -->
+  <section class="notifications">
+    <h2>🚨 Notifications</h2>
+    <div class="notification-cards">
+      <div class="card">Bin 75% full — Schedule pickup?</div>
+      <div class="card">Weekly report: 85% sorting accuracy!</div>
+      <div class="card">Organic bin needs cleaning tomorrow.</div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 SmartBin | Designed for a cleaner tomorrow</p>
+  </footer>
+</body>
+</html>

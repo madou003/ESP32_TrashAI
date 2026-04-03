@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Detection</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+  <!-- Main Section -->
+  <section class="content">
+    <h1>📸 Live Video Stream</h1>
+
+    <div class="video-placeholder">
+  <img
+    id="videoStream"
+    src="{{ url_for('video_feed') }}"
+    alt="Live video stream"
+    style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;"
+  />
+</div>
+
+    </div>
+
+    <!-- This button will trigger /api/scan -->
+    <button id="scanBtn" class="btn">Scan Object (Screenshot)</button>
+
+    <p id="status">Status: Idle</p>
+    <p id="result">Last prediction: -</p>
+
+    <h2>⚙️ Detection Logs <button class="btn small" id="logsBtn">Show Logs</button></h2>
+    <div id="logs" class="logs"></div>
+
+    <h2>🧩 Model Status: <strong>Active✅</strong></h2>
+
+    <div class="model-switch">
+      <h3>🧠 Switch Model :</h3>
+      <input id="modelInput" type="text" placeholder="(UI only for now)" />
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <h2>Contact Us</h2>
+      <div class="footer-buttons">
+        <button class="btn black">Click Here</button>
+        <button class="btn gray">Social Media</button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const scanBtn  = document.getElementById("scanBtn");
+    const statusP  = document.getElementById("status");
+    const resultP  = document.getElementById("result");
+    const logsEl   = document.getElementById("logs");
+    const logsBtn  = document.getElementById("logsBtn");
+
+    const history = [];
+
+    scanBtn.onclick = async () => {
+      statusP.textContent = "Status: Capturing… (watch webcam, press SPACE)";
+      resultP.textContent = "Last prediction: -";
+
+      try {
+        const res = await fetch("/api/scan", { method: "POST" });
+
+        if (!res.ok) {
+          let msg = "HTTP " + res.status;
+          try {
+            const err = await res.json();
+            if (err.error) msg = err.error;
+          } catch (_) {}
+          statusP.textContent = "Status: Error – " + msg;
+          return;
+        }
+
+        const data = await res.json();
+        statusP.textContent = "Status: Done (sent to ESP32)";
+        resultP.textContent =
+          `Last prediction: ${data.label} (raw=${data.raw_label}, ` +
+          `conf=${(data.confidence * 100).toFixed(1)}%)`;
+
+        const stamp = new Date().toLocaleTimeString();
+        history.unshift(`[${stamp}] ${data.label} (raw=${data.raw_label}, conf=${(data.confidence * 100).toFixed(1)}%)`);
+        if (history.length > 10) history.pop();
+        logsEl.innerHTML = history.map(h => `<div>${h}</div>`).join("");
+      } catch (e) {
+        console.error(e);
+        statusP.textContent = "Status: Error – check server/console";
+      }
+    };
+
+    logsBtn.onclick = () => {
+      if (logsEl.style.display === "none" || !logsEl.style.display) {
+        logsEl.style.display = "block";
+        logsBtn.textContent = "Hide Logs";
+      } else {
+        logsEl.style.display = "none";
+        logsBtn.textContent = "Show Logs";
+      }
+    };
+  </script>
+</body>
+
+</html>
